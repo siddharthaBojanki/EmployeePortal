@@ -1,0 +1,301 @@
+﻿@using EmployeePortal.ViewModels.EmployeeViewModels
+@model LeaveHistoryViewModel
+@{
+    ViewData["Title"] = "My Leave History";
+}
+<style>
+    .page-heading {
+        color: #005B99; /* Primary Theme Color */
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        font-size: 1.35rem;
+    }
+</style>
+<div class="row">
+    <div class="col-12">
+
+        <div class="card shadow-sm border mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h3 class="fw-bold mb-1 page-heading">Leave History</h3>
+                        <p class="text-muted small mb-0">Click on any row to view full details.</p>
+                    </div>
+                    <a asp-action="ApplyLeave" class="btn btn-primary fw-semibold shadow-sm">
+                        <i class="bi bi-plus-lg me-1"></i> Apply Leave
+                    </a>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded-3 bg-light d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="d-block text-muted small text-uppercase fw-bold">Casual Leave</span>
+                                <div class="d-flex align-items-baseline gap-1">
+                                    <span class="fs-4 fw-bold text-dark">@Model.LeaveBalance?.CasualRemaining</span>
+                                    <span class="text-muted small">/ @Model.LeaveBalance?.CasualLeaves</span>
+                                </div>
+                            </div>
+                            <i class="bi bi-cup-hot text-secondary fs-4 opacity-50"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded-3 bg-light d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="d-block text-muted small text-uppercase fw-bold">Sick Leave</span>
+                                <div class="d-flex align-items-baseline gap-1">
+                                    <span class="fs-4 fw-bold text-dark">@Model.LeaveBalance?.SickRemaining</span>
+                                    <span class="text-muted small">/ @Model.LeaveBalance?.SickLeaves</span>
+                                </div>
+                            </div>
+                            <i class="bi bi-bandaid text-secondary fs-4 opacity-50"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded-3 bg-light d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="d-block text-muted small text-uppercase fw-bold">Other</span>
+                                <div class="d-flex align-items-baseline gap-1">
+                                    <span class="fs-4 fw-bold text-dark">@Model.LeaveBalance?.OtherRemaining</span>
+                                    <span class="text-muted small">/ @Model.LeaveBalance?.OtherLeaves</span>
+                                </div>
+                            </div>
+                            <i class="bi bi-grid text-secondary fs-4 opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+
+                @if (!(Model.Leaves?.Any() ?? false))
+                {
+                    <div class="text-center py-5 border rounded-3 bg-light">
+                        <i class="bi bi-calendar-x fs-3 text-muted mb-2 d-block"></i>
+                        <span class="text-muted">No leave history found.</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-3 py-3 text-muted small fw-bold text-uppercase border-0 rounded-start">Date Range</th>
+                                    <th class="py-3 text-muted small fw-bold text-uppercase border-0">Type</th>
+                                    <th class="py-3 text-muted small fw-bold text-uppercase border-0">Status</th>
+                                    <th class="py-3 text-muted small fw-bold text-uppercase border-0">Applied On</th>
+                                    <th class="pe-3 py-3 text-end border-0 rounded-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var l in Model.Leaves)
+                                {
+                                    var dates = $"{l.FromDate:MMM dd, yyyy} - {l.ToDate:MMM dd, yyyy}";
+                                    var days = (l.ToDate - l.FromDate).TotalDays + 1;
+                                    var comment = string.IsNullOrWhiteSpace(l.AdminComment) ? "No comments provided." : l.AdminComment;
+                                    // <-- IMPORTANT: encode comment for safe use in data-attribute
+                                    var encodedComment = Uri.EscapeDataString(comment);
+
+                                    <tr class="clickable-row"
+                                        onclick="openLeaveModal(this)"
+                                        style="cursor: pointer;"
+                                        data-type="@l.LeaveType"
+                                        data-dates="@dates"
+                                        data-days="@days"
+                                        data-status="@l.Status"
+                                        data-applied="@l.AppliedOn.ToShortDateString()"
+                                        data-comment="@encodedComment">
+                                        <td class="ps-3">
+                                            <div class="fw-semibold text-dark">@l.FromDate.ToString("MMM dd, yyyy")</div>
+                                            <div class="small text-muted">
+                                                <i class="bi bi-arrow-down-right small me-1"></i> to @l.ToDate.ToString("MMM dd, yyyy")
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            <span class="badge bg-white text-secondary border fw-normal">@l.LeaveType</span>
+                                        </td>
+
+                                        <td>
+                                            @if (l.Status == EmployeePortal.Models.RequestStatus.Pending)
+                                            {
+                                                <span class="badge bg-warning text-dark rounded-pill">Pending</span>
+                                            }
+                                            else if (l.Status == EmployeePortal.Models.RequestStatus.Approved)
+                                            {
+                                                <span class="badge bg-success rounded-pill">Approved</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger rounded-pill">Rejected</span>
+                                            }
+
+                                            @if (!string.IsNullOrWhiteSpace(l.AdminComment))
+                                            {
+                                                <i class="bi bi-chat-text-fill text-muted ms-2" title="Has comments"></i>
+                                            }
+                                        </td>
+
+                                        <td class="text-secondary small">
+                                            @l.AppliedOn.ToShortDateString()
+                                        </td>
+
+                                        <td class="text-end pe-3" onclick="event.stopPropagation()">
+                                            @if (l.Status == EmployeePortal.Models.RequestStatus.Pending)
+                                            {
+                                                <form asp-action="CancelLeave" method="post" class="d-inline">
+                                                    <input type="hidden" name="id" value="@l.Id" />
+                                                    <button class="btn btn-sm btn-outline-danger shadow-sm" onclick="return confirm('Are you sure you want to cancel this request?');">
+                                                        Cancel
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-sm btn-light text-muted border" style="pointer-events: none;">
+                                                    Closed
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Remove stray backdrops / modal-open state (defensive)
+        function cleanupLeftoverModalArtifacts() {
+            try {
+                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.paddingRight = '';
+            } catch (e) {
+                console.error('cleanupLeftoverModalArtifacts error', e);
+            }
+        }
+
+        // Safely open modal with decode and cleanup
+        function openLeaveModal(row) {
+            try {
+                // Defensive cleanup in case a previous modal left artifacts
+                cleanupLeftoverModalArtifacts();
+
+                // 1. Extract data (comment was encoded on server)
+                const type = row.getAttribute('data-type') || '';
+                const dates = row.getAttribute('data-dates') || '';
+                const days = row.getAttribute('data-days') || '';
+                const status = row.getAttribute('data-status') || '';
+                const encodedComment = row.getAttribute('data-comment') || '';
+                const comment = decodeURIComponent(encodedComment);
+                const applied = row.getAttribute('data-applied') || '';
+
+                // 2. Populate fields
+                const modalEl = document.getElementById('leaveDetailsModal');
+                if (!modalEl) {
+                    console.error('Modal element not found: #leaveDetailsModal');
+                    return;
+                }
+
+                document.getElementById('modalType').textContent = type;
+                document.getElementById('modalDates').textContent = dates;
+                document.getElementById('modalDays').textContent = days;
+                document.getElementById('modalApplied').textContent = applied;
+                document.getElementById('modalComment').textContent = comment;
+
+                // 3. Style status
+                const statusBadge = document.getElementById('modalStatusBadge');
+                const statusBanner = document.getElementById('statusBanner');
+
+                statusBadge.textContent = status;
+                statusBadge.className = 'badge rounded-pill px-3 py-2 fs-6';
+                statusBanner.className = 'mb-4 text-center p-3 rounded-3 border';
+
+                if (status === 'Approved') {
+                    statusBadge.classList.add('bg-success');
+                    statusBanner.classList.add('bg-success-subtle', 'border-success-subtle');
+                } else if (status === 'Pending') {
+                    statusBadge.classList.add('bg-warning', 'text-dark');
+                    statusBanner.classList.add('bg-warning-subtle', 'border-warning-subtle');
+                } else {
+                    statusBadge.classList.add('bg-danger');
+                    statusBanner.classList.add('bg-danger-subtle', 'border-danger-subtle');
+                }
+
+                // 4. Create/show modal with options (keyboard/backdrop true)
+                if (typeof bootstrap === 'undefined') {
+                    console.error('Bootstrap JS not found. Modal cannot be shown.');
+                    return;
+                }
+
+                // Remove any existing shown modal instance first (defensive)
+                const currentlyShown = document.querySelector('.modal.show');
+                if (currentlyShown) {
+                    const prev = bootstrap.Modal.getInstance(currentlyShown);
+                    if (prev) prev.hide();
+                }
+
+                // Create new instance with proper options
+                const modalInstance = new bootstrap.Modal(modalEl, {
+                    keyboard: true,
+                    backdrop: true
+                });
+
+                // Ensure close buttons call hide on this instance (defensive)
+                modalEl.querySelectorAll('[data-bs-dismiss="modal"]').forEach(btn => {
+                    btn.removeEventListener('click', btn._leaveBoundHide);
+                    const hideFn = () => {
+                        try { modalInstance.hide(); } catch (e) { /* ignore */ }
+                    };
+                    btn.addEventListener('click', hideFn);
+                    btn._leaveBoundHide = hideFn;
+                });
+
+                // Cleanup when hidden
+                const onHidden = function () {
+                    cleanupLeftoverModalArtifacts();
+                    modalEl.removeEventListener('hidden.bs.modal', onHidden);
+                };
+                modalEl.addEventListener('hidden.bs.modal', onHidden);
+
+                // Show it
+                modalInstance.show();
+
+                // Small safety timeout to ensure body.modal-open is present
+                setTimeout(() => {
+                    if (modalEl.classList.contains('show') && !document.body.classList.contains('modal-open')) {
+                        document.body.classList.add('modal-open');
+                    }
+                }, 50);
+
+            } catch (err) {
+                console.error('openLeaveModal error', err);
+                cleanupLeftoverModalArtifacts();
+            }
+        }
+
+        // Extra failsafe: pressing Escape attempts to hide shown modal
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' || e.key === 'Esc') {
+                const shown = document.querySelector('.modal.show');
+                if (shown) {
+                    try {
+                        const inst = bootstrap.Modal.getInstance(shown);
+                        if (inst) inst.hide();
+                        else {
+                            cleanupLeftoverModalArtifacts();
+                            shown.classList.remove('show');
+                        }
+                    } catch (ex) {
+                        console.error('Escape hide fallback error', ex);
+                        cleanupLeftoverModalArtifacts();
+                    }
+                }
+            }
+        }, true);
+    </script>
+}

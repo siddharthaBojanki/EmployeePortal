@@ -1,0 +1,376 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using EmployeePortal.Models
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@{
+    var title = (string?)ViewData["Title"] ?? "EmployeePortal";
+    var isAuthenticated = User?.Identity?.IsAuthenticated ?? false;
+    var isAdmin = isAuthenticated && User.IsInRole("Admin");
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@title</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/EmployeePortal.styles.css" asp-append-version="true" />
+
+    @RenderSection("HeadContent", required: false)
+    <style>
+        .fill{
+            color: #005B99 !important;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+            <div class="container">
+
+                @{
+                    var dashLink = isAdmin ? "Admin" : "Employee";
+                }
+                <a class="navbar-brand d-flex align-items-center gap-2" asp-controller="Home" asp-action="Index">
+                    <span>EmployeePortal</span>
+                </a>
+
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                    <span class="navbar-toggler-icon" style="font-size: 0.8rem;"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="mainNav">
+
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
+                        @if (isAuthenticated && isAdmin)
+                        {
+                            <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="Dashboard"><i class="bi bi-grid fill"></i> Dashboard</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="Index"><i class="bi bi-building fill"></i> Employees</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="Departments"><i class="bi bi-building fill"></i> Depts</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="Projects"><i class="bi bi-kanban fill"></i> Projects</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="Reviews"><i class="bi bi-star fill"></i> Reviews</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="LeaveRequests"><i class="bi bi-calendar-check fill"></i> Leaves</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="WfhRequests"><i class="bi bi-laptop fill"></i> WFH</a></li>
+                        }
+                        @if (isAuthenticated && !isAdmin)
+                        {
+                            <li class="nav-item"><a class="nav-link" asp-controller="Employee" asp-action="Dashboard"><i class="bi bi-grid fill"></i> Dashboard</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Employee" asp-action="MyProjects"><i class="bi bi-kanban fill"></i> Projects</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Employee" asp-action="Performance"><i class="bi bi-graph-up fill"></i> Performance</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Employee" asp-action="LeaveHistory"><i class="bi bi-calendar3 fill"></i> Leaves</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-controller="Employee" asp-action="WfhHistory"><i class="bi bi-laptop fill"></i> WFH</a></li>
+                        }
+                    </ul>
+
+                    <div class="d-flex align-items-center gap-3 pt-2 pt-lg-0" style="margin-left:10px;">
+
+                        @if (isAuthenticated && User.IsInRole("Employee"))
+                        {
+                            <div class="d-flex gap-2">
+                                <a class="btn btn-sm btn-outline-primary fw-semibold" asp-controller="Employee" asp-action="ApplyLeave">
+                                    <i class="bi bi-plus-lg"></i> Leave
+                                </a>
+                                <a class="btn btn-sm btn-outline-secondary fw-semibold" asp-controller="Employee" asp-action="ApplyWfh">
+                                    <i class="bi bi-house"></i> WFH
+                                </a>
+                            </div>
+
+                            <a class="nav-icon-btn position-relative" asp-controller="Employee" asp-action="Notifications" title="Notifications">
+                                <i class="bi bi-bell-fill"></i> <span class="badge badge-unread badge-notification position-absolute rounded-circle p-1">
+                                    <span class="visually-hidden">New alerts</span>
+                                </span>
+                                <span class="d-none notification-count">@(ViewBag.UnreadNotifications ?? "")</span>
+                            </a>
+                        }
+
+                        @if (isAuthenticated && isAdmin)
+                        {
+                            <a class="btn btn-sm btn-primary fw-semibold" asp-controller="Admin" asp-action="CreateAnnouncement">
+                                <i class="bi bi-megaphone-fill me-1"></i> Post
+                            </a>
+                        }
+
+                        @if (isAuthenticated)
+                        {
+                            <div class="dropdown ms-1">
+                                <button class="profile-chip dropdown-toggle bg-transparent" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <div class="avatar-circle">
+                                        <i class="bi bi-person-fill"></i>
+                                    </div>
+                                    <div class="d-none d-md-block text-start" style="line-height: 1.2;">
+                                        <span class="d-block small fw-bold text-dark">Account</span>
+                                    </div>
+                                    <i class="bi bi-chevron-down text-muted small ms-1"></i>
+                                </button>
+
+                                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-modern" aria-labelledby="userMenu">
+                                    <li class="px-3 py-2 border-bottom mb-1">
+                                        <div class="small text-muted text-uppercase fw-bold" style="font-size:0.65rem; letter-spacing:0.5px;">Signed in as</div>
+                                        <div class="fw-bold text-dark text-truncate">@User.Identity?.Name</div>
+                                    </li>
+
+                                    @if (User.IsInRole("Employee"))
+                                    {
+                                        <li><a class="dropdown-item dropdown-item-modern" asp-controller="Employee" asp-action="Profile"><i class="bi bi-person-badge fill"></i> My Profile</a></li>
+                                        <li><a class="dropdown-item dropdown-item-modern" asp-controller="Employee" asp-action="Dashboard"><i class="bi bi-grid fill"></i> Dashboard</a></li>
+                                    }
+                                    @if (isAdmin)
+                                    {
+                                        <li><a class="dropdown-item dropdown-item-modern" asp-controller="Admin" asp-action="Profile"><i class="bi bi-person-badge fill"></i> My Profile</a></li>
+                                        <li><a class="dropdown-item dropdown-item-modern" asp-controller="Admin" asp-action="Dashboard"><i class="bi bi-speedometer2 fill"></i> Dashboard</a></li>
+                                    }
+
+                                    <li class="mt-1 border-top pt-1">
+                                        <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post" class="m-0">
+                                            <button type="submit" class="dropdown-item dropdown-item-modern text-danger fw-semibold">
+                                                <i class="bi bi-box-arrow-right text-danger me-2"></i> Logout
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <a class="btn btn-sm btn-primary px-4 rounded-pill shadow-sm" asp-area="Identity" asp-page="/Account/Login">Login</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container app-container">
+        <main role="main">
+            @if (TempData["Success"] != null || TempData["Error"] != null)
+            {
+                <div class="mb-3">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success border-0 shadow-sm py-2 px-3 d-flex align-items-center rounded-3 small" role="alert" style="background: #f0fdf4; color: #166534;">
+                            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+                            <button type="button" class="btn-close ms-auto small" data-bs-dismiss="alert" aria-label="Close" style="padding: 0.5rem;"></button>
+                        </div>
+                    }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger border-0 shadow-sm py-2 px-3 d-flex align-items-center rounded-3 small" role="alert" style="background: #fef2f2; color: #b91c1c;">
+                            <i class="bi bi-exclamation-circle-fill me-2"></i> @TempData["Error"]
+                            <button type="button" class="btn-close ms-auto small" data-bs-dismiss="alert" aria-label="Close" style="padding: 0.5rem;"></button>
+                        </div>
+                    }
+                </div>
+            }
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="container">
+            <span class="text-muted small">
+                &copy; @DateTime.UtcNow.Year <strong>EmployeePortal</strong>. All rights reserved.
+            </span>
+        </div>
+    </footer>
+
+    @* Modal for notifications page *@
+    <div class="modal fade" id="notifModal" tabindex="-1" aria-labelledby="notifModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
+
+                <div class="modal-header bg-white border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark" id="notifModalLabel">
+                        <i class="bi bi-bell-fill text-primary me-2"></i>Notification
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                    <h5 class="fw-bold text-dark mb-1" id="notifTitle"></h5>
+                    <div class="text-muted small mb-4">
+                        <i class="bi bi-calendar3 me-1"></i> <span id="notifDate"></span>
+                    </div>
+
+                    <div class="p-3 bg-light border rounded-3 text-secondary text-break"
+                         id="notifMessage"
+                         style="min-height: 80px; white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6;">
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light border fw-semibold px-4" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Modal for employee leave history page *@
+    <div class="modal fade" id="leaveDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-header bg-white border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark">
+                        <i class="bi bi-info-circle-fill text-primary me-2"></i>Leave Details
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+
+                    <div id="statusBanner" class="mb-4 text-center p-3 rounded-3 border">
+                        <span id="modalStatusBadge" class="badge rounded-pill px-3 py-2 fs-6"></span>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="detail-label text-muted small fw-bold text-uppercase">Leave Type</div>
+                            <div class="detail-value fs-6 fw-semibold text-dark" id="modalType"></div>
+                        </div>
+                        <div class="col-6">
+                            <div class="detail-label text-muted small fw-bold text-uppercase">Applied On</div>
+                            <div class="detail-value fs-6 fw-semibold text-dark" id="modalApplied"></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="detail-label text-muted small fw-bold text-uppercase">Duration</div>
+                        <div class="detail-value fs-6 fw-semibold text-dark">
+                            <span id="modalDates"></span> <span class="text-muted fw-normal ms-1">(<span id="modalDays"></span> Days)</span>
+                        </div>
+                    </div>
+
+                    <hr class="border-secondary opacity-10 my-4" />
+
+                    <div class="detail-label text-muted small fw-bold text-uppercase mb-2">Admin Comments / Reason</div>
+                    <div class="p-3 bg-light border rounded-3 text-secondary text-break" style="min-height: 80px; white-space: pre-wrap;" id="modalComment">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 bg-transparent">
+                    <button type="button" class="btn btn-light border fw-semibold px-4" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Modal for employee wfh history page *@
+    <div class="modal fade" id="wfhDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content shadow-lg border-0" style="border-radius: 12px;">
+                <div class="modal-header bg-white border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark">
+                        <i class="bi bi-laptop text-primary me-2"></i>WFH Details
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+
+                    <div id="wfhStatusBanner" class="mb-4 text-center p-3 rounded-3 border">
+                        <span id="wfhStatusBadge" class="badge rounded-pill px-3 py-2 fs-6"></span>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <div class="text-muted small fw-bold text-uppercase mb-1">WFH Date</div>
+                            <div class="fs-6 fw-semibold text-dark" id="wfhDate"></div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-muted small fw-bold text-uppercase mb-1">Requested On</div>
+                            <div class="fs-6 fw-semibold text-dark" id="wfhRequested"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="text-muted small fw-bold text-uppercase mb-1">My Reason</div>
+                        <div class="p-3 bg-white border rounded-3 text-secondary" id="wfhReason"></div>
+                    </div>
+
+                    <hr class="border-secondary opacity-10 my-4" />
+
+                    <div class="text-muted small fw-bold text-uppercase mb-2">Admin Comments</div>
+                    <div class="p-3 bg-light border rounded-3 text-secondary text-break" style="min-height: 60px;" id="wfhAdminComment">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 bg-transparent">
+                    <button type="button" class="btn btn-light border fw-semibold px-4" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Common Modal for admin leave and wfh approval pages *@
+    <div class="modal fade" id="adminRequestModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content shadow-lg border-0" style="border-radius: 12px;">
+
+                <div class="modal-header bg-white border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark">
+                        <i class="bi bi-info-circle-fill text-primary me-2"></i>Request Details
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body p-4 bg-white">
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <div class="text-muted small fw-bold text-uppercase mb-1">Employee</div>
+                            <div class="fs-6 fw-semibold text-dark" id="adm_employee"></div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-muted small fw-bold text-uppercase mb-1">Request Type</div>
+                            <div class="fs-6 fw-semibold text-dark" id="adm_type"></div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-muted small fw-bold text-uppercase mb-1">Date</div>
+                            <div class="fs-6 fw-semibold text-dark" id="adm_dates"></div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-muted small fw-bold text-uppercase mb-1">Applied On</div>
+                            <div class="fs-6 fw-semibold text-dark" id="adm_applied"></div>
+                        </div>
+                    </div>
+
+                    <div class="text-muted small fw-bold text-uppercase mb-2">Employee Reason</div>
+                    <div class="p-3 bg-light border rounded-3 text-secondary text-break mb-4"
+                         style="min-height: 80px; white-space: pre-wrap;"
+                         id="adm_reason"></div>
+
+                    <div class="text-center border-top pt-4">
+                        <span class="text-muted small fw-bold text-uppercase me-2">Current Status:</span>
+                        <span id="adm_status" class="badge rounded-pill px-3 py-2 fs-6"></span>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0 pt-0 bg-white">
+                    <button type="button" class="btn btn-light border fw-semibold px-4" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        (function () {
+            try {
+                const countSpan = document.querySelector('.notification-count');
+                const badge = document.querySelector('.badge-unread');
+                if (countSpan && badge) {
+                    const count = countSpan.innerText.trim();
+                    badge.style.display = (count && count !== "0") ? 'block' : 'none';
+                }
+            } catch (e) { }
+        })();
+    </script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

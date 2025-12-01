@@ -1,0 +1,173 @@
+﻿@model EmployeePortal.ViewModels.EmployeeViewModels.MyProjectsViewModel
+@{
+    ViewData["Title"] = "My Projects";
+}
+
+<style>
+    /* --- Modern Page Header --- */
+    .card-header-modern {
+        background-color: #f8fafc; /* Very light grey-blue */
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1.5rem;
+        border-radius: 10px 10px 0 0;
+    }
+
+    .page-heading {
+        color: #005B99; /* Primary Theme Color */
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        font-size: 1.35rem;
+    }
+
+    /* --- Project Card Styles --- */
+    .project-item-card {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        border-left: 5px solid #005B99; /* Deep Blue Accent */
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        transition: all 0.2s ease-in-out;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 1.25rem;
+    }
+
+    .project-item-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 16px rgba(0, 91, 153, 0.08);
+        border-color: #cbd5e1;
+    }
+
+    .project-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 2px;
+    }
+
+    .client-name {
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+    }
+
+    .meta-label {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .meta-value {
+        font-size: 0.9rem;
+        color: #334155;
+        font-weight: 500;
+    }
+</style>
+
+<div class="row">
+    <div class="col-12">
+        
+        <div class="card shadow-sm border mb-4" style="border-radius: 10px;">
+            
+            <div class="card-header card-header-modern d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="page-heading mb-1">My Projects</h3>
+                    <p class="text-muted small mb-0">Manage your active assignments and deadlines.</p>
+                </div>
+                @if (Model.Assignments.Any())
+                {
+                    <span class="badge bg-white text-primary border shadow-sm px-3 py-2 rounded-pill">
+                        @Model.Assignments.Count() Active
+                    </span>
+                }
+            </div>
+
+            <div class="card-body p-4">
+                @if (!Model.Assignments.Any())
+                {
+                    <div class="text-center py-5">
+                        <div class="mb-3">
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light" style="width: 60px; height: 60px;">
+                                <i class="bi bi-folder2-open fs-3 text-muted opacity-50"></i>
+                            </div>
+                        </div>
+                        <h6 class="text-muted fw-semibold">No projects assigned yet.</h6>
+                        <p class="text-muted small">You will see your project tasks here once assigned.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="row g-4">
+                        @foreach (var a in Model.Assignments)
+                        {
+                            <div class="col-md-6 col-lg-6">
+                                <div class="project-item-card">
+                                    
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <div class="client-name">
+                                                <i class="bi bi-building me-1"></i> @a.Client
+                                            </div>
+                                            <div class="project-title">@a.ProjectName</div>
+                                        </div>
+                                        @if (a.IsActive)
+                                        {
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2" style="font-size:0.7rem;">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-2">Closed</span>
+                                        }
+                                    </div>
+
+                                    <div class="row g-2 mb-4">
+                                        <div class="col-6">
+                                            <div class="meta-label">Role</div>
+                                            <div class="meta-value text-truncate">@(string.IsNullOrWhiteSpace(a.Role) ? "-" : a.Role)</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="meta-label">Deadline</div>
+                                            <div class="meta-value text-danger">
+                                                <i class="bi bi-calendar-event me-1"></i>@(a.ProjectDeadline?.ToShortDateString() ?? "No Date")
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                                        
+                                        <a asp-action="ProjectDetails" asp-route-assignmentId="@a.AssignmentId" class="btn btn-sm btn-light border text-primary fw-semibold">
+                                            <i class="bi bi-eye me-1"></i> Details
+                                        </a>
+
+                                        @if (a.IsActive)
+                                        {
+                                            <form asp-action="MarkAssignmentComplete" method="post" class="d-inline">
+                                                <input type="hidden" name="assignmentId" value="@a.AssignmentId" />
+                                                <button type="submit" class="btn btn-sm btn-outline-success fw-semibold shadow-sm" onclick="return confirm('Mark this assignment as complete?');">
+                                                    <i class="bi bi-check2-circle me-1"></i> Complete
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small fst-italic">
+                                                <i class="bi bi-check-all me-1"></i> Completed
+                                            </span>
+                                        }
+                                    </div>
+
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

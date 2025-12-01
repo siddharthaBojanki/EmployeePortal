@@ -1,0 +1,116 @@
+﻿@model EmployeePortal.ViewModels.AdminViewModels.CreateReviewModel
+@{
+    ViewData["Title"] = "Create Review";
+}
+
+<style>
+    /* Standardized Header Style */
+    .card-header-modern {
+        background-color: #f8fafc; /* Very light grey-blue */
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1.5rem;
+        border-radius: 10px 10px 0 0;
+    }
+
+    .page-heading {
+        color: #005B99; /* Primary Theme Color */
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        font-size: 1.35rem;
+    }
+</style>
+
+<div class="row justify-content-center mt-4">
+    <div class="col-lg-10 col-xl-8">
+
+        <!-- Main Card -->
+        <div class="card shadow-sm border mb-4" style="border-radius: 10px;">
+
+            <!-- Header -->
+            <div class="card-header card-header-modern d-flex align-items-center gap-3">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle"
+                     style="width: 48px; height: 48px; background-color: #FFFBEB; color: #005B99;">
+                    <i class="bi bi-star-fill fs-4"></i>
+                </div>
+                <div>
+                    <h3 class="page-heading mb-0">Performance Review</h3>
+                    <p class="text-muted small mb-0">Add a performance review for an employee.</p>
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                <form asp-action="CreateReview" method="post" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-4" role="alert"></div>
+
+                    <!-- Row 1: Employee & Date -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="EmployeeId" class="form-label fw-semibold text-secondary small text-uppercase">Employee</label>
+                            <select asp-for="EmployeeId" class="form-select">
+                                <option value="">-- Select Employee --</option>
+                                @foreach (var e in (IEnumerable<EmployeePortal.Models.Employee>)ViewBag.Employees)
+                                {
+                                    <option value="@e.Id" selected="@(Model.EmployeeId == e.Id ? "selected" : null)">@e.FullName</option>
+                                }
+                            </select>
+                            <span asp-validation-for="EmployeeId" class="text-danger small mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="ReviewDate" class="form-label fw-semibold text-secondary small text-uppercase">Review Date</label>
+                            <input asp-for="ReviewDate" class="form-control" type="date" />
+                            <span asp-validation-for="ReviewDate" class="text-danger small mt-1 d-block"></span>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Rating & Reviewer -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label asp-for="Rating" class="form-label fw-semibold text-secondary small text-uppercase">Rating (1-5)</label>
+                            <input asp-for="Rating" class="form-control" type="number" min="1" max="5" placeholder="e.g. 4.5" />
+                            <div class="text-muted small mt-1">1 (poor) — 5 (excellent)</div>
+                            <span asp-validation-for="Rating" class="text-danger small mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-md-8">
+                            <label asp-for="ReviewedBy" class="form-label fw-semibold text-secondary small text-uppercase">Reviewed By (optional)</label>
+                            <select asp-for="ReviewedBy" class="form-select">
+                                <option value="">-- None --</option>
+                                @foreach (var e in (IEnumerable<EmployeePortal.Models.Employee>)ViewBag.Employees)
+                                {
+                                    if (e.Role == EmployeePortal.Models.RoleType.Admin)
+                                    {
+                                        <option value="@e.Id" selected="@(Model.ReviewedBy == e.Id ? "selected" : null)">@e.FullName (Admin)</option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="ReviewedBy" class="text-danger small mt-1 d-block"></span>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Feedback -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label asp-for="Feedback" class="form-label fw-semibold text-secondary small text-uppercase">Feedback</label>
+                            <textarea asp-for="Feedback" class="form-control" rows="4" placeholder="Enter detailed feedback and areas for growth"></textarea>
+                            <span asp-validation-for="Feedback" class="text-danger small mt-1 d-block"></span>
+                        </div>
+                    </div>
+
+
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a asp-action="Reviews" class="btn btn-light border text-muted px-4">Cancel</a>
+                        <button type="submit" class="btn btn-primary fw-semibold px-4 shadow-sm">
+                            <i class="bi bi-check-lg me-1"></i> Add Review
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

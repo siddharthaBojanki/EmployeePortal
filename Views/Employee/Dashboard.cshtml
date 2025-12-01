@@ -1,0 +1,343 @@
+﻿@model EmployeePortal.ViewModels.EmployeeViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<style>
+    /* Dashboard Specific Styles complementing site.css */
+    .dashboard-stat-card {
+        background: #fff;
+        border: none;
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+        height: 100%;
+        overflow: hidden;
+        position: relative;
+    }
+
+        .dashboard-stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+    .stat-icon-bg {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        opacity: 0.9;
+    }
+
+    /* List Items */
+    .list-item-soft {
+        background-color: #FAFCFF; /* Very light blue */
+        border: 1px solid #EEF2F6;
+        border-radius: 10px;
+        padding: 1rem;
+        transition: background-color 0.2s;
+        margin-bottom: 0.8rem;
+    }
+
+        .list-item-soft:hover {
+            background-color: #fff;
+            border-color: var(--secondary);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+
+    /* Notification Border strip */
+    .notification-item {
+        border-left: 4px solid var(--secondary);
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* NEW: Enhanced Link Styling */
+    .hover-link-anim {
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--primary);
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: all 0.2s ease;
+    }
+
+        .hover-link-anim i {
+            transition: transform 0.2s ease;
+        }
+
+        .hover-link-anim:hover {
+            color: #004a80; /* Darker blue on hover */
+            gap: 8px; /* Slide effect */
+        }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4 fade-in-up">
+    <div>
+        <h2 class="fw-bold mb-1">Welcome back, @Model.FullName</h2>
+        <p class="text-muted small mb-0">Here is your daily activity overview.</p>
+    </div>
+    <div class="d-none d-md-block">
+        <span class="badge bg-white text-primary border shadow-sm px-3 py-2 rounded-pill">
+            <i class="bi bi-calendar3 me-2"></i> @DateTime.Now.ToString("dddd, dd MMMM yyyy")
+        </span>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+
+    <div class="col-md-4">
+        <div class="dashboard-stat-card p-4">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <h6 class="text-uppercase text-muted small fw-bold tracking-wide">Leave Balance</h6>
+                    <h2 class="display-5 fw-bold text-primary mb-0">@Model.LeaveRemaining</h2>
+                    <span class="small text-muted">days available</span>
+                </div>
+                <div class="stat-icon-bg" style="background-color: #E6F2FA; color: #005B99;">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+            </div>
+
+            @{
+                var percent = Model.LeaveEntitlement == 0 ? 0 : (int)(100.0 * Math.Min(Model.LeaveUsed, Model.LeaveEntitlement) / Model.LeaveEntitlement);
+            }
+            <div class="d-flex justify-content-between small text-muted mb-1">
+                <span>Used: <strong>@Model.LeaveUsed</strong></span>
+                <span>Total: @Model.LeaveEntitlement</span>
+            </div>
+            <div class="progress" style="height: 6px; border-radius: 10px; background-color: #EDF2F7;">
+                <div class="progress-bar" role="progressbar" style="width: @percent%; background-color: #005B99;"></div>
+            </div>
+
+            <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                <a asp-controller="Employee" asp-action="LeaveHistory" class="hover-link-anim">
+                    View History <i class="bi bi-arrow-right"></i>
+                </a>
+                @if (Model.PendingLeaveRequests > 0)
+                {
+                    <span class="badge bg-warning text-dark rounded-pill shadow-sm">@Model.PendingLeaveRequests Pending</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="dashboard-stat-card p-4">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <h6 class="text-uppercase text-muted small fw-bold tracking-wide">WFH Balance</h6>
+                    <h2 class="display-5 fw-bold mb-0" style="color: #2c3e50;">@Model.WfhRemaining</h2>
+                    <span class="small text-muted">days remaining</span>
+                </div>
+                <div class="stat-icon-bg" style="background-color: #F0FDF4; color: #198754;">
+                    <i class="bi bi-laptop"></i>
+                </div>
+            </div>
+
+            @{
+                var wfhPercent = Model.WfhEntitlement == 0 ? 0 : (int)(100.0 * Math.Min(Model.WfhUsed, Model.WfhEntitlement) / Model.WfhEntitlement);
+            }
+            <div class="d-flex justify-content-between small text-muted mb-1">
+                <span>Used: <strong>@Model.WfhUsed</strong></span>
+                <span>Total: @Model.WfhEntitlement</span>
+            </div>
+            <div class="progress" style="height: 6px; border-radius: 10px; background-color: #EDF2F7;">
+                <div class="progress-bar bg-success" role="progressbar" style="width: @wfhPercent%;"></div>
+            </div>
+
+            <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                <a asp-controller="Employee" asp-action="WfhHistory" class="hover-link-anim">
+                    View History <i class="bi bi-arrow-right"></i>
+                </a>
+                @if (Model.PendingWfhRequests > 0)
+                {
+                    <span class="badge bg-warning text-dark rounded-pill shadow-sm">@Model.PendingWfhRequests Pending</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="dashboard-stat-card p-4">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <h6 class="text-uppercase text-muted small fw-bold tracking-wide">Performance</h6>
+                    <div class="d-flex align-items-baseline gap-2">
+                        <h2 class="display-5 fw-bold text-primary mb-0">@(Model.LatestRating == 0 ? "-" : Model.LatestRating.ToString("0.0"))</h2>
+                        <span class="text-warning fs-5"><i class="bi bi-star-fill"></i></span>
+                    </div>
+                    <span class="small text-muted">current rating</span>
+                </div>
+                <div class="stat-icon-bg" style="background-color: #FFF8E1; color: #F1C40F;">
+                    <i class="bi bi-trophy"></i>
+                </div>
+            </div>
+
+            @{
+                // Calculate percentage based on a scale of 5
+                var ratingPercent = (int)((Model.LatestRating / 5.0) * 100);
+                if (ratingPercent > 100) ratingPercent = 100;
+            }
+
+            <div class="d-flex justify-content-between small text-muted mb-1">
+                <span>Score: <strong>@Model.LatestRating</strong>/5</span>
+                <span>@(Model.LatestRatingDate.HasValue? Model.LatestRatingDate.Value.ToString("MMM yyyy") : "No Data")</span>
+            </div>
+
+            <div class="progress" style="height: 6px; border-radius: 10px; background-color: #EDF2F7;">
+                <div class="progress-bar bg-warning" role="progressbar" style="width: @ratingPercent%;"></div>
+            </div>
+
+            <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                <a asp-controller="Employee" asp-action="Performance" class="hover-link-anim">
+                    View Reviews <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-lg-8">
+
+        <div class="card mb-4">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                <div class="section-title">
+                    <i class="bi bi-graph-up-arrow text-primary"></i> Recent Performance
+                </div>
+                <a asp-controller="Employee" asp-action="Performance" class="hover-link-anim">View All <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="card-body p-4">
+                @if (Model.RecentPerformance.Any())
+                {
+                    @foreach (var r in Model.RecentPerformance)
+                    {
+                        <div class="list-item-soft d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="badge bg-primary rounded-pill">Rating: @r.Rating</span>
+                                    <span class="small text-muted">@r.ReviewDate.ToShortDateString()</span>
+                                </div>
+                                <p class="small text-muted mb-0 text-truncate" style="max-width: 400px;">
+                                    <i class="bi bi-chat-quote me-1"></i> @(!string.IsNullOrEmpty(r.Feedback) ? r.Feedback : "No feedback provided.")
+                                </p>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted small">
+                        <i class="bi bi-inbox fs-4 d-block mb-2 opacity-50"></i>
+                        No performance records found.
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                <div class="section-title">
+                    <i class="bi bi-airplane text-primary"></i> Recent Leaves
+                </div>
+                <a asp-controller="Employee" asp-action="LeaveHistory" class="hover-link-anim">View All <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="card-body p-4">
+                @if (Model.RecentLeaves.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="border-0 text-muted fw-normal ps-3 rounded-start">Duration</th>
+                                    <th class="border-0 text-muted fw-normal">Dates</th>
+                                    <th class="border-0 text-muted fw-normal pe-3 rounded-end text-end">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var l in Model.RecentLeaves)
+                                {
+                                    <tr>
+                                        <td class="ps-3 border-bottom-0">
+                                            <span class="fw-bold text-dark">Leave</span>
+                                        </td>
+                                        <td class="border-bottom-0">
+                                            @l.From.ToShortDateString() <i class="bi bi-arrow-right small text-muted mx-1"></i> @l.To.ToShortDateString()
+                                        </td>
+                                        <td class="text-end border-bottom-0 pe-3">
+                                            @{
+                                                var statusClass = l.Status == "Approved" ? "bg-success" : l.Status == "Pending" ? "bg-warning text-dark" : "bg-danger";
+                                            }
+                                            <span class="badge @statusClass rounded-pill fw-normal px-2">@l.Status</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted small">
+                        <i class="bi bi-cup-hot fs-4 d-block mb-2 opacity-50"></i>
+                        No recent leave history.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                <div class="section-title">
+                    <i class="bi bi-bell text-primary"></i> Updates
+                </div>
+                <a asp-controller="Employee" asp-action="Notifications" class="hover-link-anim">View All <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <div class="card-body p-4">
+                @{
+                    var announcements = Model.RecentAnnouncements.Select(a => new { Type = "Announcement", Title = a.Title ?? "", CreatedAt = a.CreatedAt });
+                    var notifications = Model.RecentNotifications.Select(n => new { Type = "Notification", Title = n.Title ?? "", CreatedAt = n.CreatedAt });
+                    var combined = announcements.Concat(notifications).OrderByDescending(x => x.CreatedAt).Take(5).ToList();
+                }
+
+                @if (combined.Any())
+                {
+                    @foreach (var it in combined)
+                    {
+                        <div class="list-item-soft notification-item p-3 mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="badge bg-light text-secondary border">@it.Type</span>
+                                <small class="text-muted" style="font-size: 0.75rem;">@it.CreatedAt.ToString("MMM dd")</small>
+                            </div>
+                            <div class="fw-semibold text-dark text-truncate">@it.Title</div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted small">
+                        <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" alt="Quiet" style="width: 60px; opacity: 0.5; filter: grayscale(100%);" class="mb-3 d-block mx-auto" />
+                        All caught up! No new updates.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

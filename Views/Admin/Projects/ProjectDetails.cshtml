@@ -1,0 +1,227 @@
+﻿@model EmployeePortal.Models.Project
+@{
+    ViewData["Title"] = "Project Details";
+}
+
+<style>
+    /* --- Modern Header Style --- */
+    .card-header-modern {
+        background-color: #f8fafc; /* Very light grey-blue */
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1.5rem;
+        border-radius: 10px 10px 0 0;
+    }
+
+    .page-heading {
+        color: #005B99; /* Primary Theme Color */
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        font-size: 1.35rem;
+    }
+
+    /* --- Assignment Form & Table Styles --- */
+    .assignment-form-row {
+        background-color: #E6F2FA; /* Soft Blue accent background for the form bar */
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid #BAE6FD;
+    }
+
+    .table th {
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+    }
+
+    .table td {
+        font-size: 0.9rem;
+        color: #334155;
+        vertical-align: middle;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+
+    /* Status Badges */
+    .badge-progress {
+        background-color: #f1f5f9;
+        color: #64748b;
+    }
+
+    .badge-completed {
+        background-color: #dcfce7;
+        color: #16a34a;
+    }
+
+    /* Release Request Highlight */
+    .row-requested-release {
+        background-color: #fffbeb !important; /* Soft Gold/Warning background */
+        border-left: 4px solid #f6b91a;
+        font-weight: 500;
+    }
+
+    .btn-action-sm {
+        font-size: 0.8rem;
+        padding: 4px 10px;
+        font-weight: 600;
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-12">
+
+        <div class="card shadow-sm border mb-4" style="border-radius: 10px;">
+
+            <div class="card-header card-header-modern d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="page-heading mb-1">@Model.Name</h3>
+                    <p class="text-muted small mb-0">
+                        Client: @Model.Client &nbsp; • &nbsp;
+                        Start: @(Model.StartDate?.ToShortDateString() ?? "-") &nbsp; • &nbsp;
+                        Deadline: <span class="text-danger">@(Model.Deadline?.ToShortDateString() ?? "-")</span>
+                    </p>
+                </div>
+
+                <a asp-action="Projects" class="btn btn-sm btn-light border text-secondary fw-semibold">
+                    Back
+                </a>
+            </div>
+
+            <div class="card-body p-4">
+
+                <div class="assignment-form-row mb-4">
+                    <h6 class="fw-bold text-primary mb-3">Assign New Employee</h6>
+                    <form asp-action="AssignToProject" method="post" class="d-flex align-items-center gap-3">
+                        <input type="hidden" name="projectId" value="@Model.Id" />
+
+                        <select name="employeeId" class="form-select form-select-sm" required style="width: 250px;">
+                            <option value="">-- select employee --</option>
+                            @foreach (var e in (IEnumerable<EmployeePortal.Models.Employee>)ViewBag.Employees)
+                            {
+                                <option value="@e.Id">@e.FullName</option>
+                            }
+                        </select>
+
+                        <input name="role" placeholder="Role (optional)" class="form-control form-control-sm" style="width: 150px;" />
+
+                        <button class="btn btn-sm btn-primary fw-semibold shadow-sm px-4">
+                            <i class="bi bi-person-plus me-1"></i> Assign
+                        </button>
+                    </form>
+                </div>
+
+                <h5 class="fw-bold text-dark mb-3 mt-4">Current Assignments</h5>
+
+                @if (Model.Assignments == null || !Model.Assignments.Any())
+                {
+                    <div class="text-center py-4 border rounded bg-light text-muted small">No employees currently assigned.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Role</th>
+                                    <th>Assigned On</th>
+                                    <th>Status</th>
+                                    <th>Request</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var a in Model.Assignments)
+                                {
+                                    var req = a.ReleaseRequested;
+                                    <tr id="assign-@a.Id" class="@(req ? "row-requested-release" : "")">
+
+                                        <td class="fw-semibold text-dark">@a.Employee?.FullName</td>
+
+                                        <td class="text-muted">@(string.IsNullOrWhiteSpace(a.Role) ? "-" : a.Role)</td>
+
+                                        <td>@a.AssignedOn.ToShortDateString()</td>
+
+                                        <td>
+                                            @if (a.IsActive)
+                                            {
+                                                <span class="badge badge-progress">In Progress</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-completed">Completed</span>
+                                            }
+                                        </td>
+
+                                        <td>
+                                            @if (a.ReleaseRequested)
+                                            {
+                                                <div class="fw-bold text-danger small">
+                                                    <i class="bi bi-person-x-fill me-1"></i> RELEASE REQUESTED
+                                                </div>
+                                                <div class="small text-muted" title="@a.ReleaseComment">@a.ReleaseComment</div>
+                                            }
+                                            else
+                                            {
+                                                <span class="small text-muted">—</span>
+                                            }
+                                        </td>
+
+                                        <td class="text-end">
+                                            @if (a.ReleaseRequested)
+                                            {
+                                                <button class="btn btn-action-sm btn-danger shadow-sm" onclick="return confirm('Please approve/deny this release request via the main Assignments list view.');" disabled>
+                                                    Pending Approval
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-action-sm btn-outline-danger" onclick="removeAssign('@a.Id')" title="Remove Assignment">
+                                                    Remove
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // NOTE: The server-side logic for RemoveAssignment is already assumed to exist.
+        async function removeAssign(id) {
+            if (!confirm('Are you sure you want to remove this assignment?')) return;
+
+            // Assume the URL is /Admin/RemoveAssignment?id=...
+            const url = '@Url.Action("RemoveAssignment", "Admin")' + '?id=' + id;
+
+            try {
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value }
+                });
+
+                if (resp.ok) {
+                    const el = document.getElementById('assign-' + id);
+                    if (el) el.remove();
+                    // Optional: show success message via TempData or toast
+                    window.location.reload();
+                } else {
+                    alert('Error removing assignment. Check server logs.');
+                }
+            } catch (error) {
+                alert('A network error occurred.');
+            }
+        }
+    </script>
+    @Html.AntiForgeryToken()
+}

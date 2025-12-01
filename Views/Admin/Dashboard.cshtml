@@ -1,0 +1,287 @@
+﻿@model EmployeePortal.ViewModels.AdminViewModels.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+@functions {
+    // Using solid, high-contrast colors as requested in previous turns
+    private string StatusBadgeClass(string status)
+    {
+        if (string.IsNullOrWhiteSpace(status)) return "badge bg-secondary text-white";
+        switch (status.Trim().ToLowerInvariant())
+        {
+            case "approved": return "badge bg-success text-white fw-semibold rounded-pill";
+            case "rejected":
+            case "declined": return "badge bg-danger text-white fw-semibold rounded-pill";
+            case "pending": return "badge bg-warning text-dark fw-semibold rounded-pill";
+            case "cancelled":
+            case "cancel": return "badge bg-secondary text-white fw-semibold rounded-pill";
+            default: return "badge bg-info";
+        }
+    }
+}
+
+<style>
+    /* --- General Layout Styling --- */
+    .dashboard-container {
+        padding-top: 0.5rem;
+    }
+
+    .page-title {
+        color: #005B99; /* Primary Blue Text */
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        font-size: 1.5rem;
+    }
+
+    /* --- TOP STAT CARDS (Interaction Maintained) --- */
+    .stat-card {
+        background-color: #ffffff;
+        border: 1px solid #d0d7df !important;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0, 91, 153, 0.12);
+        }
+
+    .stat-value {
+        color: #005B99; /* Primary color for numbers */
+        font-weight: 700;
+        font-size: 2.25rem;
+        line-height: 1.2;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-icon {
+        width: 55px;
+        height: 55px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+    }
+
+    /* --- FINAL BUTTON STYLING (Solid BG) --- */
+    .btn-admin-nav, .btn-list-action {
+        background-color: #E6F2FA; /* Solid Light Blue Background */
+        border: 1px solid #BAE6FD;
+        color: #005B99; /* Primary blue text */
+        font-weight: 600;
+        padding: 0.375rem 1rem;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+        .btn-admin-nav:hover, .btn-list-action:hover {
+            background-color: #D0E4F0;
+            border-color: #93C5FD;
+            color: #004A80;
+        }
+
+    /* --- List Density and Styling Fixes --- */
+    .ep-list-item {
+        background: #ffffff;
+        border: 1px solid #e1e5ea;
+        border-radius: 8px;
+        padding: 0.75rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        margin-bottom: 12px !important;
+        transition: 0.2s ease;
+    }
+
+        .ep-list-item:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateY(-2px);
+        }
+
+    /* Consolidated Section Title Style */
+    .ep-section-title {
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: #334155;
+        border-left: 4px solid #004A80;
+        padding-left: 10px;
+    }
+</style>
+
+<div class="dashboard-container">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="page-title fw-bold">Admin Dashboard</h1>
+        <div>
+            <a asp-controller="Admin" asp-action="Index" class="btn btn-sm btn-admin-nav me-2">Manage Employees</a>
+            <a asp-controller="Department" asp-action="Index" class="btn btn-sm btn-admin-nav">Manage Departments</a>
+        </div>
+    </div>
+
+
+    <div class="row g-4 mb-5">
+
+        <div class="col-sm-6 col-md-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon me-3" style="background-color: #E6F2FA; color: #005B99;">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <div>
+                        <div class="small text-muted text-uppercase fw-semibold">Total Employees</div>
+                        <div class="stat-value">@Model.TotalEmployees</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-md-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon me-3" style="background-color: #FFFBEB; color: #F6B91A;">
+                        <i class="bi bi-calendar-minus"></i>
+                    </div>
+                    <div class="ms-1">
+                        <div class="small text-muted text-uppercase fw-semibold">Pending Leaves</div>
+                        <div class="stat-value" style="color: #F6B91A;">@Model.PendingLeaves</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-md-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon me-3" style="background-color: #F0FDF4; color: #16A34A;">
+                        <i class="bi bi-house-door-fill"></i>
+                    </div>
+                    <div class="ms-1">
+                        <div class="small text-muted text-uppercase fw-semibold">Pending WFH</div>
+                        <div class="stat-value" style="color: #16A34A;">@Model.PendingWfhs</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-md-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon me-3" style="background-color: #E6F2FA; color: #005B99;">
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <div class="ms-1">
+                        <div class="small text-muted text-uppercase fw-semibold">Total Reviews</div>
+                        <div class="stat-value">@Model.TotalReviews</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row g-4">
+
+        <div class="col-lg-8">
+
+            <div class="card shadow-sm border p-4 mb-4" style="border-radius: 10px;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="ep-section-title" style="color: #005B99">Recent Leave Requests</h6>
+                    <a asp-controller="Admin" asp-action="LeaveRequests" class="btn btn-sm btn-list-action fw-semibold py-1">View all</a>
+                </div>
+
+                @if (Model.RecentLeaveRequests?.Any() == true)
+                {
+                    <div class="d-flex flex-column pt-3">
+                        @foreach (var l in Model.RecentLeaveRequests)
+                        {
+                            <div class="ep-list-item rounded p-3 mb-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="me-3">
+                                        <div class="fw-semibold text-dark">@l.EmployeeName</div>
+                                        <div class="small text-muted">@l.LeaveType • @l.FromDate.ToShortDateString() → @l.ToDate.ToShortDateString()</div>
+                                    </div>
+
+                                    <div class="text-end">
+                                        <div class="@StatusBadgeClass(l.Status)">@l.Status</div>
+                                        <div class="small text-muted mt-1">Applied: @l.AppliedOn.ToShortDateString()</div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-muted small text-center py-4">No recent leave requests.</div>
+                }
+            </div>
+
+            <div class="card shadow-sm border p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="ep-section-title" style="color: #005B99">Recent WFH Requests</h6>
+                    <a asp-controller="Admin" asp-action="WfhRequests" class="btn btn-sm btn-list-action fw-semibold py-1">View all</a>
+                </div>
+
+                @if (Model.RecentWfhRequests?.Any() == true)
+                {
+                    <div class="d-flex flex-column pt-3">
+                        @foreach (var w in Model.RecentWfhRequests)
+                        {
+                            <div class="ep-list-item rounded p-3 mb-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="me-3">
+                                        <div class="fw-semibold text-dark">@w.EmployeeName</div>
+                                        <div class="small text-muted">WFH Date: @w.Date.ToShortDateString()</div>
+                                    </div>
+
+                                    <div class="text-end">
+                                        <div class="@StatusBadgeClass(w.Status)">@w.Status</div>
+                                        <div class="small text-muted mt-1">Requested: @w.RequestedOn.ToShortDateString()</div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-muted small text-center py-4">No recent WFH requests.</div>
+                }
+            </div>
+
+        </div>
+
+
+        <div class="col-lg-4">
+            <div class="card stat-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="ep-section-title" style="color: #005B99">Announcements</h5>
+                    <a asp-controller="Admin" asp-action="CreateAnnouncement" class="btn btn-sm btn-primary fw-semibold">New Post</a>
+                </div>
+
+                @if (Model.RecentAnnouncements?.Any() == true)
+                {
+                    <ul class="list-unstyled mb-0" style="gap: 0.5rem;">
+                        @foreach (var n in Model.RecentAnnouncements)
+                        {
+                            <li class="ep-list-item rounded p-3 mb-3 border-left-blue">
+                                <div class="fw-semibold text-dark">@n.Title</div>
+                                <div class="small text-muted mt-1">@n.Message</div>
+                                <div class="text-muted small mt-2">@n.CreatedAt.ToShortDateString()</div>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="text-muted small text-center py-5">No recent announcements.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

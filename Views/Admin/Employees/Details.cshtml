@@ -1,0 +1,350 @@
+﻿@model EmployeePortal.Models.Employee
+@using EmployeePortal.Models
+@{
+    ViewData["Title"] = "Employee Details";
+}
+
+@functions {
+    private string StatusBadgeClass(RequestStatus status)
+    {
+        return status switch
+        {
+            RequestStatus.Approved => "badge bg-success",
+            RequestStatus.Rejected => "badge bg-danger",
+            RequestStatus.Pending => "badge bg-warning text-dark",
+            _ => "badge bg-secondary"
+        };
+    }
+}
+
+<style>
+    /* --- Layout Styling (Dreamy Dusk Theme) --- */
+    .details-card {
+        max-width: 1100px;
+        margin: 20px auto;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+
+    /* Avatar - Theme Gradient */
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #005B99 0%, #004070 100%);
+        border-radius: 50%;
+        box-shadow: 0 6px 12px rgba(0, 91, 153, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 4px solid #fff;
+    }
+
+    .avatar-text {
+        font-size: 2.5rem;
+        color: #ffffff;
+        font-weight: 700;
+    }
+
+    /* Labels & Values */
+    .detail-label {
+        color: #64748b; /* Slate */
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .detail-value {
+        color: #0f172a; /* Ink Black */
+        font-weight: 500;
+    }
+
+    /* Tabs Container */
+    .tab-card {
+        background: #f8fafc; /* Very light grey */
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        padding: 20px;
+    }
+
+    /* Tabs Styling */
+    .nav-tabs .nav-link {
+        color: #64748b;
+        font-weight: 600;
+    }
+
+        .nav-tabs .nav-link.active {
+            color: #005B99; /* Primary Blue */
+            border-color: #e2e8f0 #e2e8f0 #f8fafc;
+            background-color: #f8fafc;
+        }
+
+    .section-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #005B99;
+        margin-bottom: 12px;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 8px;
+    }
+
+    .small-muted {
+        color: #64748b;
+        font-size: .9rem;
+    }
+
+    /* Custom Badges */
+    .badge-active {
+        background-color: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+        padding: 4px 10px;
+        border-radius: 50px;
+    }
+
+    .badge-inactive {
+        background-color: #f1f5f9;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        padding: 4px 10px;
+        border-radius: 50px;
+    }
+
+    .table td, .table th {
+        vertical-align: middle;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="card details-card">
+    <div class="card-body p-4">
+
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <div>
+                <h3 class="fw-bold text-dark mb-1">Employee Details</h3>
+                <div class="small-muted">Profile, requests, and performance overview.</div>
+            </div>
+            <div class="text-end">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm fw-semibold shadow-sm me-2">
+                    <i class="bi bi-pencil-square me-1"></i> Edit
+                </a>
+                <a asp-controller="Admin" asp-action="Index" class="btn btn-light border text-muted btn-sm">Back</a>
+            </div>
+        </div>
+
+        <div class="row g-5">
+
+            <div class="col-lg-4">
+                <div class="text-center mb-4">
+                    <div class="profile-avatar mb-3 mx-auto">
+                        @{
+                            var initials = "NA";
+                            if (!string.IsNullOrWhiteSpace(Model.FullName))
+                            {
+                                initials = Model.FullName.Substring(0, 1).ToUpper();
+                            }
+                        }
+                        <span class="avatar-text">@initials</span>
+                    </div>
+
+                    <h4 class="fw-bold text-dark mb-1">@Model.FullName</h4>
+                    <div class="small text-muted">@(!string.IsNullOrWhiteSpace(Model.User?.Email) ? Model.User.Email : "-")</div>
+                </div>
+
+                <hr class="text-muted opacity-25" />
+
+                <dl class="row mb-2 gy-0">
+                    <dt class="col-5 detail-label">Phone</dt>
+                    <dd class="col-7 detail-value">@(!string.IsNullOrWhiteSpace(Model.Phone) ? Model.Phone : "-")</dd>
+
+                    <dt class="col-5 detail-label">Department</dt>
+                    <dd class="col-7 detail-value">
+                        @if (!string.IsNullOrWhiteSpace(Model.Department?.Name))
+                        {
+                            <span class="badge bg-light text-secondary border fw-normal">@Model.Department.Name</span>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </dd>
+
+                    <dt class="col-5 detail-label">Joined</dt>
+                    <dd class="col-7 detail-value">@Model.DateOfJoining.ToShortDateString()</dd>
+
+                    <dt class="col-5 detail-label">Status</dt>
+                    <dd class="col-7">
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge-active small fw-semibold"><i class="bi bi-check-circle-fill me-1"></i> Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge-inactive small fw-semibold">Inactive</span>
+                        }
+                    </dd>
+
+                    <dt class="col-12 detail-label mt-3">Address</dt>
+                    <dd class="col-12 detail-value small">
+                        @(!string.IsNullOrWhiteSpace(Model.Address) ? Model.Address : "No address provided.")
+                    </dd>
+                </dl>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="tab-card">
+
+                    <ul class="nav nav-tabs mb-4" id="employeeDetailTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="leaves-tab" data-bs-toggle="tab" data-bs-target="#leaves" type="button">
+                                Leaves <span class="badge bg-light text-secondary border ms-1">@(Model.LeaveRequests?.Count ?? 0)</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="wfh-tab" data-bs-toggle="tab" data-bs-target="#wfh" type="button">
+                                WFH <span class="badge bg-light text-secondary border ms-1">@(Model.WfhRequests?.Count ?? 0)</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="perf-tab" data-bs-toggle="tab" data-bs-target="#performance" type="button">
+                                Performance <span class="badge bg-light text-secondary border ms-1">@(Model.PerformanceReviews?.Count ?? 0)</span>
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+
+                        <div class="tab-pane fade show active" id="leaves" role="tabpanel">
+                            <div class="section-title">Leave History</div>
+
+                            @if (Model.LeaveRequests == null || !Model.LeaveRequests.Any())
+                            {
+                                <div class="text-muted small text-center py-4">No leave requests found.</div>
+                            }
+                            else
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0 bg-white border rounded">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th>Dates</th>
+                                                <th>Type</th>
+                                                <th>Status</th>
+                                                <th class="text-end">Applied</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var l in Model.LeaveRequests.OrderByDescending(x => x.AppliedOn))
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <span class="fw-semibold text-dark">@l.FromDate.ToString("MMM dd")</span>
+                                                        <span class="text-muted small"> - @l.ToDate.ToString("MMM dd")</span>
+                                                    </td>
+                                                    <td>@l.LeaveType</td>
+                                                    <td><span class="@StatusBadgeClass(l.Status)">@l.Status</span></td>
+                                                    <td class="text-end text-muted small">@l.AppliedOn.ToShortDateString()</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="tab-pane fade" id="wfh" role="tabpanel">
+                            <div class="section-title">WFH Requests</div>
+
+                            @if (Model.WfhRequests == null || !Model.WfhRequests.Any())
+                            {
+                                <div class="text-muted small text-center py-4">No WFH requests found.</div>
+                            }
+                            else
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0 bg-white border rounded">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Reason</th>
+                                                <th>Status</th>
+                                                <th class="text-end">Requested</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var w in Model.WfhRequests.OrderByDescending(x => x.RequestedOn))
+                                            {
+                                                <tr>
+                                                    <td class="fw-semibold text-dark">@w.Date.ToString("MMM dd, yyyy")</td>
+                                                    <td class="text-truncate" style="max-width: 150px;" title="@w.Reason">
+                                                        @(string.IsNullOrWhiteSpace(w.Reason) ? "-" : w.Reason)
+                                                    </td>
+                                                    <td><span class="@StatusBadgeClass(w.Status)">@w.Status</span></td>
+                                                    <td class="text-end text-muted small">@w.RequestedOn.ToShortDateString()</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="tab-pane fade" id="performance" role="tabpanel">
+                            <div class="section-title">Performance Reviews</div>
+
+                            @if (Model.PerformanceReviews == null || !Model.PerformanceReviews.Any())
+                            {
+                                <div class="text-muted small text-center py-4">No reviews found.</div>
+                            }
+                            else
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0 bg-white border rounded">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Rating</th>
+                                                <th>Feedback</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var p in Model.PerformanceReviews.OrderByDescending(x => x.ReviewDate))
+                                            {
+                                                <tr>
+                                                    <td>@p.ReviewDate.ToShortDateString()</td>
+                                                    <td>
+                                                        <div class="d-flex align-items-center text-warning small">
+                                                            @for (int i = 1; i <= 5; i++)
+                                                            {
+                                                                if (i <= p.Rating)
+                                                                {
+                                                                    <i class="bi bi-star-fill"></i>
+                                                                }
+                                                                else
+                                                                {
+
+                                                                    <i class="bi bi-star text-muted opacity-25"></i>
+                                                                }
+                                                            }
+                                                            <span class="text-dark fw-bold ms-2">@p.Rating</span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-truncate" style="max-width: 200px;" title="@p.Feedback">
+                                                        @(!string.IsNullOrWhiteSpace(p.Feedback) ? p.Feedback : "-")
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

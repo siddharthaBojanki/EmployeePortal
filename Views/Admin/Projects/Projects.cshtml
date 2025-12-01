@@ -1,0 +1,119 @@
+﻿@model IEnumerable<EmployeePortal.Models.Project>
+@{
+    ViewData["Title"] = "Projects";
+}
+
+<style>
+    /* --- Modern Header Style (Maintained) --- */
+    .card-header-modern {
+        background-color: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1.5rem;
+        border-radius: 10px 10px 0 0;
+    }
+
+    .page-heading {
+        color: #005B99;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        font-size: 1.35rem;
+    }
+
+    /* --- Project Item Card --- */
+    .project-item-card {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-left: 4px solid #A4C8E1; /* Soft Blue Accent */
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        transition: all 0.2s ease-in-out;
+        height: 100%;
+        padding: 1.25rem;
+    }
+
+        .project-item-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 91, 153, 0.08);
+            border-color: #cbd5e1;
+        }
+
+    .project-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .project-meta {
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 500;
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-12">
+
+        <div class="card shadow-sm border mb-4" style="border-radius: 10px;">
+
+            <div class="card-header card-header-modern d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="page-heading mb-1">Projects</h3>
+                    <p class="text-muted small mb-0">Manage all projects and assignments to employees.</p>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a asp-action="Assignments" class="btn btn-sm btn-outline-secondary fw-semibold px-3 shadow-sm">
+                        <i class="bi bi-list-task me-1"></i> View Assignments
+                    </a>
+
+                    <a asp-action="CreateProject" class="btn btn-primary btn-sm px-4 fw-semibold shadow-sm">
+                        <i class="bi bi-plus-lg me-1"></i> New Project
+                    </a>
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    @if (!Model.Any())
+                    {
+                        <div class="col-12 text-center py-5">
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light" style="width: 60px; height: 60px;">
+                                <i class="bi bi-folder-fill fs-3 text-muted opacity-50"></i>
+                            </div>
+                            <h6 class="text-muted fw-semibold mt-3">No projects defined yet.</h6>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var p in Model)
+                        {
+                            <div class="col-md-6 col-lg-6">
+                                <div class="project-item-card">
+                                    <div class="d-flex justify-content-between align-items-start">
+
+                                        <div class="me-3">
+                                            <div class="project-title">@p.Name</div>
+                                            <div class="project-meta">Client: @p.Client</div>
+                                            <div class="project-meta mt-1">Status: <span class="fw-semibold">@p.Status</span></div>
+                                        </div>
+
+                                        <div class="text-end d-flex flex-column gap-2">
+                                            <div class="project-meta">
+                                                <i class="bi bi-people-fill me-1"></i> @((p.Assignments?.Count() ?? 0)) members
+                                            </div>
+
+                                            <a asp-action="ProjectDetails" asp-route-id="@p.Id" class="btn btn-sm btn-light border text-primary fw-semibold">
+                                                Details
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

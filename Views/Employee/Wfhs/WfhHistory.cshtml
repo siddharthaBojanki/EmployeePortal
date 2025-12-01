@@ -1,0 +1,186 @@
+﻿@model IEnumerable<EmployeePortal.Models.WfhRequest>
+@{
+    ViewData["Title"] = "My WFH Requests";
+}
+
+<div class="row">
+    <div class="col-12">
+
+        <div class="card shadow-sm border mb-4">
+            <div class="card-body p-4">
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h3 class="fw-bold text-dark mb-1">WFH History</h3>
+                        <p class="text-muted small mb-0">Track your work from home applications.</p>
+                    </div>
+                    <a asp-action="ApplyWfh" class="btn btn-primary fw-semibold shadow-sm">
+                        <i class="bi bi-laptop me-1"></i> Request WFH
+                    </a>
+                </div>
+
+                @if (!Model.Any())
+                {
+                    <div class="text-center py-5 border rounded-3 bg-light">
+                        <i class="bi bi-laptop fs-3 text-muted mb-2 d-block opacity-50"></i>
+                        <span class="text-muted">No WFH requests found.</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-3 py-3 text-muted small fw-bold text-uppercase border-0 rounded-start">Date</th>
+                                    <th class="py-3 text-muted small fw-bold text-uppercase border-0">Reason</th>
+                                    <th class="py-3 text-muted small fw-bold text-uppercase border-0">Status</th>
+                                    <th class="py-3 text-muted small fw-bold text-uppercase border-0">Requested On</th>
+                                    <th class="pe-3 py-3 text-end border-0 rounded-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var w in Model)
+                                {
+                                    // Serialize Data for Modal
+                                    var adminComment = string.IsNullOrWhiteSpace(w.AdminComment) ? "No comments provided." : w.AdminComment;
+                                    var userReason = string.IsNullOrWhiteSpace(w.Reason) ? "No reason provided." : w.Reason;
+                                    var encodedAdminComment = Uri.EscapeDataString(adminComment);
+                                    var encodedReason = Uri.EscapeDataString(userReason);
+
+                                    <tr onclick="openWfhModal(this)"
+                                        style="cursor: pointer;"
+                                        data-date="@w.Date.ToShortDateString()"
+                                        data-reason="@encodedReason"
+                                        data-status="@w.Status"
+                                        data-requested="@w.RequestedOn.ToShortDateString()"
+                                        data-comment="@encodedAdminComment">
+
+                                        <td class="ps-3 fw-semibold text-dark">
+                                            @w.Date.ToShortDateString()
+                                        </td>
+
+                                        <td class="text-truncate" style="max-width: 200px;">
+                                            @w.Reason
+                                        </td>
+
+                                        <td>
+                                            @if (w.Status == EmployeePortal.Models.RequestStatus.Pending)
+                                            {
+                                                <span class="badge bg-warning text-dark rounded-pill">Pending</span>
+                                            }
+                                            else if (w.Status == EmployeePortal.Models.RequestStatus.Approved)
+                                            {
+                                                <span class="badge bg-success rounded-pill">Approved</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger rounded-pill">Rejected</span>
+                                            }
+
+                                            @if (!string.IsNullOrWhiteSpace(w.AdminComment))
+                                            {
+                                                <i class="bi bi-chat-text-fill text-muted ms-2" title="Has comments"></i>
+                                            }
+                                        </td>
+
+                                        <td class="text-secondary small">
+                                            @w.RequestedOn.ToShortDateString()
+                                        </td>
+
+                                        <td class="text-end pe-3" onclick="event.stopPropagation()">
+                                            @if (w.Status == EmployeePortal.Models.RequestStatus.Pending)
+                                            {
+                                                <form asp-action="CancelWfh" method="post" class="d-inline">
+                                                    <input type="hidden" name="id" value="@w.Id" />
+                                                    <button class="btn btn-sm btn-outline-danger bg-white shadow-sm" onclick="return confirm('Cancel this WFH request?');">
+                                                        Cancel
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-sm btn-light text-muted border" style="pointer-events: none;">
+                                                    Closed
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function cleanupWfhModal() {
+            try {
+                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.paddingRight = '';
+            } catch (e) { console.error(e); }
+        }
+
+        function openWfhModal(row) {
+            try {
+                cleanupWfhModal();
+
+                // 1. Extract Data
+                const date = row.getAttribute('data-date');
+                const requested = row.getAttribute('data-requested');
+                const status = row.getAttribute('data-status');
+
+                const encodedReason = row.getAttribute('data-reason') || '';
+                const reason = decodeURIComponent(encodedReason);
+
+                const encodedComment = row.getAttribute('data-comment') || '';
+                const adminComment = decodeURIComponent(encodedComment);
+
+                // 2. Populate Modal
+                document.getElementById('wfhDate').textContent = date;
+                document.getElementById('wfhRequested').textContent = requested;
+                document.getElementById('wfhReason').textContent = reason;
+                document.getElementById('wfhAdminComment').textContent = adminComment;
+
+                // 3. Style Status
+                const statusBadge = document.getElementById('wfhStatusBadge');
+                const statusBanner = document.getElementById('wfhStatusBanner');
+
+                statusBadge.textContent = status;
+                statusBadge.className = 'badge rounded-pill px-3 py-2 fs-6';
+                statusBanner.className = 'mb-4 text-center p-3 rounded-3 border';
+
+                if (status === 'Approved') {
+                    statusBadge.classList.add('bg-success');
+                    statusBanner.classList.add('bg-success-subtle', 'border-success-subtle');
+                } else if (status === 'Pending') {
+                    statusBadge.classList.add('bg-warning', 'text-dark');
+                    statusBanner.classList.add('bg-warning-subtle', 'border-warning-subtle');
+                } else {
+                    statusBadge.classList.add('bg-danger');
+                    statusBanner.classList.add('bg-danger-subtle', 'border-danger-subtle');
+                }
+
+                // 4. Show Modal
+                if (typeof bootstrap === 'undefined') return;
+
+                const modalEl = document.getElementById('wfhDetailsModal');
+                const modalInstance = new bootstrap.Modal(modalEl, { keyboard: true, backdrop: true });
+
+                modalEl.querySelectorAll('[data-bs-dismiss="modal"]').forEach(btn => {
+                    const newBtn = btn.cloneNode(true);
+                    btn.parentNode.replaceChild(newBtn, btn);
+                    newBtn.addEventListener('click', () => modalInstance.hide());
+                });
+
+                modalInstance.show();
+
+            } catch (err) { console.error(err); }
+        }
+    </script>
+}

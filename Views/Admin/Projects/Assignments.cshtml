@@ -1,0 +1,163 @@
+﻿@model IEnumerable<EmployeePortal.Models.EmployeeProject>
+@{
+    ViewData["Title"] = "Assignments";
+}
+
+<style>
+    /* --- Modern Header Style (Maintained) --- */
+    .card-header-modern {
+        background-color: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1.5rem;
+        border-radius: 10px 10px 0 0;
+    }
+
+    .page-heading {
+        color: #005B99;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        font-size: 1.35rem;
+    }
+
+    /* --- Notification Highlight (REPLACED YELLOW/ORANGE) --- */
+    .row-requested {
+        background-color: #E6F2FA !important; /* Soft Primary Blue tint */
+        border-left: 5px solid #005B99; /* Deep Blue Accent */
+    }
+
+        .row-requested:hover {
+            background-color: #D5E7F8 !important;
+        }
+
+    /* --- Table and Typography Styles (Maintained) --- */
+    .table th {
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+    }
+
+    .table td {
+        font-size: 0.95rem;
+        color: #334155;
+        vertical-align: middle;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+
+    .btn-action-sm {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+        font-weight: 600;
+    }
+
+    .small-muted-comment {
+        color: #475569;
+        font-size: 0.8rem;
+        margin-top: 0.2rem;
+        font-style: italic;
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-12">
+
+        <div class="card shadow-sm border mb-4" style="border-radius: 10px;">
+
+            <div class="card-header card-header-modern d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="page-heading mb-1">Project Assignments</h3>
+                    <p class="text-muted small mb-0">Review requests for project release.</p>
+                </div>
+
+                <a asp-action="Projects" class="btn btn-sm btn-light border text-secondary fw-semibold">
+                    Back
+                </a>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-white">
+                            <tr>
+                                <th class="ps-4 py-3 border-bottom">Employee</th>
+                                <th class="py-3 border-bottom">Project</th>
+                                <th class="py-3 border-bottom">Role</th>
+                                <th class="py-3 border-bottom">Assigned On</th>
+                                <th class="py-3 border-bottom">Release Request</th>
+                                <th class="pe-4 py-3 text-end border-bottom">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.Any())
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-5">
+                                        <i class="bi bi-person-workspace fs-4 d-block mb-2 opacity-50"></i>
+                                        No active assignments found.
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                foreach (var a in Model)
+                                {
+                                    var req = a.ReleaseRequested;
+                                    <tr >
+
+                                        <td class="ps-4 fw-semibold text-dark">@a.Employee?.FullName</td>
+
+                                        <td>
+                                            <span class="fw-semibold">@a.Project?.Name</span>
+                                        </td>
+
+                                        <td>
+                                            <span class="badge bg-light text-secondary border fw-normal">@(string.IsNullOrWhiteSpace(a.Role) ? "—" : a.Role)</span>
+                                        </td>
+
+                                        <td class="text-muted small">@a.AssignedOn.ToShortDateString()</td>
+
+                                        <td>
+                                            @if (req)
+                                            {
+                                                <div class="fw-bold text-primary small">
+                                                    <i class="bi bi-bell-fill me-1"></i> ACTION REQUIRED
+                                                </div>
+                                                <div class="small-muted-comment">@(string.IsNullOrWhiteSpace(a.ReleaseComment) ? "No reason provided" : a.ReleaseComment)</div>
+                                            }
+                                            else
+                                            {
+                                                <span class="small text-muted">—</span>
+                                            }
+                                        </td>
+
+                                        <td class="text-end pe-4">
+                                            @if (req)
+                                            {
+                                                <form asp-action="ApproveRelease" method="post" class="d-inline">
+                                                    <input type="hidden" name="assignmentId" value="@a.Id" />
+                                                    <button class="btn btn-action-sm btn-success fw-semibold">Approve</button>
+                                                </form>
+
+                                                <form asp-action="DenyRelease" method="post" class="d-inline ms-2">
+                                                    <input type="hidden" name="assignmentId" value="@a.Id" />
+                                                    <button class="btn btn-action-sm btn-danger fw-semibold">Deny</button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <span class="small text-muted">Active</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

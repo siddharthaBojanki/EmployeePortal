@@ -1,0 +1,86 @@
+﻿@using EmployeePortal.ViewModels.EmployeeViewModels
+@model ApplyWfhModel
+
+@{
+    ViewData["Title"] = "Request Working From Home";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+
+        <div class="card shadow-sm border mb-4">
+            <div class="card-body p-4 p-md-5">
+
+                <div class="text-center mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 60px; height: 60px; background-color: #E6F2FA; color: #005B99; border-radius: 50%;">
+                        <i class="bi bi-laptop fs-3"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark">Request WFH</h3>
+                    <p class="text-muted small">Submit a request to work remotely for a specific date.</p>
+                </div>
+
+                <form asp-action="ApplyWfh" method="post" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-4" role="alert"></div>
+
+                    <div class="mb-4">
+                        <label asp-for="Date" class="form-label fw-semibold text-secondary small text-uppercase">Select Date</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-calendar-event"></i></span>
+                            <input asp-for="Date"
+                                   type="date"
+                                   class="form-control border-start-0 ps-0"
+                                   id="WfhDate"
+                                   min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        </div>
+                        <span asp-validation-for="Date" class="text-danger small mt-1 d-block"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Reason" class="form-label fw-semibold text-secondary small text-uppercase">Reason</label>
+                        <textarea asp-for="Reason"
+                                  class="form-control"
+                                  rows="4"
+                                  style="resize: none;"
+                                  placeholder="Briefly explain why you need to work from home..."></textarea>
+                        <span asp-validation-for="Reason" class="text-danger small mt-1 d-block"></span>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-5">
+                        <button type="submit" class="btn btn-primary fw-semibold py-2">
+                            Submit Request
+                        </button>
+                        <a asp-action="WfhHistory" class="btn btn-light border text-muted">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <p class="small text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                Check your WFH balance: <a asp-action="WfhHistory" class="fw-bold text-primary text-decoration-none">View History</a>
+            </p>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Ensure user can't pick past dates
+        document.addEventListener("DOMContentLoaded", function() {
+            const dateInput = document.getElementById("WfhDate");
+            if (dateInput) {
+                const today = new Date().toISOString().split("T")[0];
+                dateInput.min = today;
+
+                // If value is empty, default to today? Optional.
+                // if (!dateInput.value) dateInput.value = today;
+            }
+        });
+    </script>
+}

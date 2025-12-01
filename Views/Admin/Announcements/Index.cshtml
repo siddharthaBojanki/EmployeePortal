@@ -1,0 +1,131 @@
+﻿@using EmployeePortal.ViewModels
+@using EmployeePortal.ViewModels.EmployeeViewModels
+@model IEnumerable<AnnouncementViewModel>
+@{
+    ViewData["Title"] = "Announcements";
+}
+
+<style>
+    /* --- Modern Header --- */
+    .card-header-modern {
+        background-color: #f8fafc; /* Very light grey-blue */
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1.5rem;
+        border-radius: 10px 10px 0 0;
+    }
+
+    .page-heading {
+        color: #005B99; /* Primary Theme Color */
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        font-size: 1.35rem;
+    }
+
+    /* --- Announcement Item --- */
+    .announce-item {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-left: 5px solid #005B99; /* Deep Blue Accent */
+        border-radius: 8px;
+        padding: 1.25rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        transition: all 0.2s ease-in-out;
+    }
+
+        .announce-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 91, 153, 0.08);
+            border-color: #cbd5e1;
+        }
+
+    .announce-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 4px;
+    }
+
+    .announce-time {
+        color: #64748b; /* Slate */
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .announce-text {
+        margin-top: 12px;
+        white-space: pre-line;
+        color: #334155; /* Dark Slate */
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+
+        <!-- Main Card -->
+        <div class="card shadow-sm border mb-4" style="border-radius: 10px;">
+
+            <!-- Header -->
+            <div class="card-header card-header-modern d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="page-heading mb-1">Announcements</h3>
+                    <p class="text-muted small mb-0">Manage company-wide communications.</p>
+                </div>
+
+                <a asp-action="CreateAnnouncement" class="btn btn-primary btn-sm px-4 fw-semibold shadow-sm">
+                    <i class="bi bi-plus-lg me-1"></i> New Announcement
+                </a>
+            </div>
+
+            <div class="card-body p-4">
+                @if (!Model.Any())
+                {
+                    <div class="text-center py-5">
+                        <div class="mb-3">
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light" style="width: 60px; height: 60px;">
+                                <i class="bi bi-megaphone fs-3 text-muted opacity-50"></i>
+                            </div>
+                        </div>
+                        <span class="text-muted small fw-semibold">No announcements posted yet.</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="d-flex flex-column gap-3">
+                        @foreach (var a in Model)
+                        {
+                            <div class="announce-item">
+                                <div class="d-flex justify-content-between align-items-start">
+
+                                    <!-- Content -->
+                                    <div class="me-3 w-100">
+                                        <div class="announce-title">@a.Title</div>
+                                        <div class="announce-time">
+                                            <i class="bi bi-clock"></i> @a.CreatedAt.ToString("MMM dd, yyyy • hh:mm tt")
+                                        </div>
+                                        <div class="announce-text">@a.Message</div>
+                                    </div>
+
+                                    <!-- Actions -->
+                                    <div class="ms-3">
+                                        <form asp-action="DeleteAnnouncement" method="post" class="d-inline" onsubmit="return confirm('Delete this Announcement?');">
+                                            <input type="hidden" name="id" value="@a.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger shadow-sm py-1 px-3" title="Delete">
+                                                <i class="bi bi-trash3"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+    </div>
+</div>

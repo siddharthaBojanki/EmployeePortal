@@ -1,0 +1,162 @@
+﻿@{
+    ViewData["Title"] = "Welcome";
+    var isAuthenticated = User?.Identity?.IsAuthenticated ?? false;
+    var isAdmin = isAuthenticated && User.IsInRole("Admin");
+}
+
+<style>
+    /* --- Hero Section --- */
+    .hero-section {
+        background: linear-gradient(180deg, #F0F8FF 0%, #ffffff 100%); /* Alice Blue to White */
+        padding: 4rem 1rem;
+        text-align: center;
+        border-radius: 16px;
+        margin-bottom: 3rem;
+        border: 1px solid #eef2ff;
+    }
+
+    .hero-icon {
+        font-size: 4rem;
+        color: #005B99;
+        margin-bottom: 1rem;
+        display: inline-block;
+        filter: drop-shadow(0 4px 6px rgba(0, 91, 153, 0.2));
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: -1px;
+        margin-bottom: 1rem;
+    }
+
+    .hero-text {
+        font-size: 1.15rem;
+        color: #64748b;
+        max-width: 600px;
+        margin: 0 auto 2rem auto;
+        line-height: 1.6;
+    }
+
+    /* --- Primary CTA Button --- */
+    .btn-cta {
+        background-color: #005B99;
+        color: white;
+        padding: 0.8rem 2.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 50px;
+        box-shadow: 0 4px 15px rgba(0, 91, 153, 0.3);
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+        .btn-cta:hover {
+            background-color: #004a80;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 91, 153, 0.4);
+            color: white;
+        }
+
+    /* --- Feature Cards --- */
+    .feature-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        height: 100%;
+        transition: transform 0.2s;
+    }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: #A4C8E1;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+    .feature-icon-circle {
+        width: 64px;
+        height: 64px;
+        background-color: #f8fafc;
+        color: #005B99;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem auto;
+        font-size: 1.75rem;
+    }
+
+    .feature-title {
+        font-weight: 700;
+        color: #334155;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .feature-desc {
+        color: #64748b;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+</style>
+
+<div class="hero-section">
+    <div class="hero-icon">
+        <i class="bi bi-buildings-fill"></i>
+    </div>
+    <h1 class="hero-title">Employee Portal</h1>
+    <p class="hero-text">
+        Your central hub for managing work life. Seamlessly track leaves, coordinate remote work, and monitor your professional growth.
+    </p>
+
+    @if (!isAuthenticated)
+    {
+        <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-cta">
+            Login to Workspace <i class="bi bi-arrow-right ms-2"></i>
+        </a>
+    }
+    else
+    {
+        var controller = isAdmin ? "Admin" : "Employee";
+        <a asp-controller="@controller" asp-action="Dashboard" class="btn btn-cta">
+            Go to Dashboard <i class="bi bi-speedometer2 ms-2"></i>
+        </a>
+    }
+</div>
+
+<div class="row g-4">
+
+    <div class="col-md-4">
+        <div class="feature-card">
+            <div class="feature-icon-circle">
+                <i class="bi bi-calendar-check-fill"></i>
+            </div>
+            <h3 class="feature-title">Leave Management</h3>
+            <p class="feature-desc">Easily apply for time off, check your balance, and view your application history in real-time.</p>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="feature-card">
+            <div class="feature-icon-circle">
+                <i class="bi bi-laptop-fill"></i>
+            </div>
+            <h3 class="feature-title">Remote Work</h3>
+            <p class="feature-desc">Request Work From Home days and stay connected with your team from anywhere.</p>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="feature-card">
+            <div class="feature-icon-circle">
+                <i class="bi bi-graph-up-arrow"></i>
+            </div>
+            <h3 class="feature-title">Performance Tracking</h3>
+            <p class="feature-desc">Access your performance reviews, track goals, and get feedback to help you grow.</p>
+        </div>
+    </div>
+
+</div>
